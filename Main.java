@@ -17,7 +17,11 @@ class Main {
         Scanner input = new Scanner(System.in);
         System.out.println("请输入输出的长度");
         int length = input.nextInt();
-        AwaitSignal awaitSignal = new AwaitSignal();
+        if(length == 1){
+            //直接主线程跑
+            printOnce();
+        }
+        AwaitSignal awaitSignal = new AwaitSignal(length);
         //创建第一个休息室
         Condition first = null;
         if(length != 0){
@@ -71,6 +75,16 @@ class Main {
         }
 
     }
+
+    private static void printOnce() {
+        for(int i = 97 ; i <= 122 ; i++){
+            System.out.println((char)i);
+        }
+        //输出1-9的数字
+        for(int j = 49 ; j <= 57 ; j++) {
+            System.out.println((char)j);
+        }
+    }
 }
 
 
@@ -114,7 +128,14 @@ class Task implements Runnable{
 class AwaitSignal extends ReentrantLock {
 
     //每6个换行
-    private static int number = 1;
+    private int number;
+
+    private static int index = 1;
+
+
+    public AwaitSignal(int number){
+        this.number = number;
+    }
 
 
     //写一个print，由多个线程调用，当不满足条件时进入格各自的休息室等待
@@ -123,13 +144,13 @@ class AwaitSignal extends ReentrantLock {
         lock();//继承了ReentrantLock，可以省略前面的this
         try{
             current.await();//获得锁之后，先进入休息室等待被唤醒时表示可以继续运行执行它的打印了
-            if(number % 6 == 0){
+            if(index % number == 0){
                 System.out.println(str);
             }else{
                 //每6个换行
                 System.out.print(str);
             }
-            number ++;
+            index ++;
             next.signal();//打印完成之后去唤醒下一件休息室的线程
         } catch (InterruptedException e) {
             e.printStackTrace();
